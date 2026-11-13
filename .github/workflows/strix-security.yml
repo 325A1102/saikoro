@@ -1,0 +1,40 @@
+name: Strix AI Security Scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  strix-pentest:
+    name: Run Strix Autonomous Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        # Strix requires Docker to sandbox autonomous security checks
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install Strix CLI
+        run: curl -sSL https://strix.ai/install | bash
+
+      - name: Run Strix Security Assessment
+        env:
+          STRIX_LLM: ${{ vars.STRIX_LLM || 'openai/gpt-4o' }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          if [ -z "$LLM_API_KEY" ]; then
+            echo "LLM_API_KEY secret is not configured. Skipping Strix scan."
+            exit 0
+          fi
+          export PATH="$HOME/.local/bin:$PATH"
+          strix --target . --headless

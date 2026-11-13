@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DiceSkin } from '../types/game';
 import { Dice3D } from './Dice3D';
 import { sound } from '../utils/audio';
+import { rollSecureDie } from '../utils/security';
 import { Sparkles, Move, Play, RefreshCw, Compass, Hand } from 'lucide-react';
 
 interface InteractiveDiceTableProps {
@@ -278,7 +279,7 @@ export const InteractiveDiceTable: React.FC<InteractiveDiceTableProps> = ({
   // When isRolling becomes true from external trigger (button or CPU), launch if not already rolling
   useEffect(() => {
     if (isRolling && !physicsActiveRef.current) {
-      const targetFace = Math.floor(Math.random() * 6) + 1;
+      const targetFace = rollSecureDie();
       const angle = Math.random() * Math.PI * 2;
       const force = 14 + Math.random() * 6;
       launchPhysics(Math.cos(angle) * force, Math.sin(angle) * force, targetFace);
@@ -383,7 +384,7 @@ export const InteractiveDiceTable: React.FC<InteractiveDiceTableProps> = ({
 
     if (mouseMode === 'flick' && canRoll && speed > 2.8) {
       // Flick Throw mode
-      const targetFace = Math.floor(Math.random() * 6) + 1;
+      const targetFace = rollSecureDie();
       launchPhysics(vx * 1.2, vy * 1.2, targetFace);
     } else {
       // Free Spin mode: continue spinning with inertia!
@@ -479,7 +480,7 @@ export const InteractiveDiceTable: React.FC<InteractiveDiceTableProps> = ({
       if (count >= 3) {
         clearInterval(timer);
         setIsCupShaking(false);
-        const targetFace = Math.floor(Math.random() * 6) + 1;
+        const targetFace = rollSecureDie();
         launchPhysics(
           (Math.random() - 0.5) * 18,
           8 + Math.random() * 8,
@@ -577,7 +578,7 @@ export const InteractiveDiceTable: React.FC<InteractiveDiceTableProps> = ({
         onPointerLeave={() => setHoverOffset({ x: 0, y: 0 })}
         onDoubleClick={() => {
           if (canRoll && !isRolling && !isCpuTurn) {
-            const target = Math.floor(Math.random() * 6) + 1;
+            const target = rollSecureDie();
             const angle = Math.random() * Math.PI * 2;
             const force = 14 + Math.random() * 6;
             launchPhysics(Math.cos(angle) * force, Math.sin(angle) * force, target);
@@ -660,7 +661,7 @@ export const InteractiveDiceTable: React.FC<InteractiveDiceTableProps> = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                const target = Math.floor(Math.random() * 6) + 1;
+                const target = rollSecureDie();
                 const angle = Math.random() * Math.PI * 2;
                 const force = 14 + Math.random() * 6;
                 launchPhysics(Math.cos(angle) * force, Math.sin(angle) * force, target);

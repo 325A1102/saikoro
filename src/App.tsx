@@ -20,6 +20,7 @@ import {
 } from './types/game';
 import { CPU_ROSTER, calculatePlayerScore, analyzeTarget } from './utils/rules';
 import { sound } from './utils/audio';
+import { loadValidatedHistory, loadValidatedSettings, rollSecureDie } from './utils/security';
 import { InteractiveDiceTable } from './components/InteractiveDiceTable';
 import { ScoreBoard } from './components/ScoreBoard';
 import { RollControls } from './components/RollControls';
@@ -40,25 +41,15 @@ const DEFAULT_SETTINGS: GameSettings = {
 };
 
 export default function App() {
-  // Load settings from localStorage
-  const [settings, setSettings] = useState<GameSettings>(() => {
-    try {
-      const saved = localStorage.getItem('dice_clash_settings');
-      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
-  });
+  // Load settings from localStorage with strict schema validation
+  const [settings, setSettings] = useState<GameSettings>(() =>
+    loadValidatedSettings('dice_clash_settings', DEFAULT_SETTINGS)
+  );
 
-  // Load history from localStorage
-  const [history, setHistory] = useState<MatchRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem('dice_clash_history');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Load history from localStorage with strict schema validation
+  const [history, setHistory] = useState<MatchRecord[]>(() =>
+    loadValidatedHistory('dice_clash_history')
+  );
 
   // Modals state
   const [isRulesOpen, setIsRulesOpen] = useState(false);
@@ -136,7 +127,7 @@ export default function App() {
     setIsRerollPending(false);
     setIsGameOver(false);
     setActivePlayerId('p1');
-    setCurrentDiceValue(Math.floor(Math.random() * 6) + 1);
+    setCurrentDiceValue(rollSecureDie());
 
     const isVsCpu = settings.mode === 'vs-cpu';
     const cpu = CPU_ROSTER.find((c) => c.id === settings.cpuId) || CPU_ROSTER[0];

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Award, RotateCcw } from 'lucide-react';
 import { MatchRecord } from '../types/game';
 import { sound } from '../utils/audio';
@@ -16,6 +16,8 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   matches,
   onClearHistory,
 }) => {
+  const [confirmingClear, setConfirmingClear] = useState(false);
+
   if (!isOpen) return null;
 
   const totalMatches = matches.length;
@@ -134,26 +136,54 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-stone-800 bg-stone-950 flex items-center justify-between">
+        <div className="p-4 border-t border-stone-800 bg-stone-950 flex items-center justify-between gap-3">
           {matches.length > 0 ? (
-            <button
-              onClick={() => {
-                if (window.confirm('すべての対戦履歴をリセットしますか？')) {
-                  onClearHistory();
-                }
-              }}
-              className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>履歴を消去</span>
-            </button>
+            confirmingClear ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    onClearHistory();
+                    setConfirmingClear(false);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white cursor-pointer transition-colors"
+                >
+                  本当に消去する
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    setConfirmingClear(false);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-stone-800 hover:bg-stone-700 text-stone-300 cursor-pointer transition-colors"
+                >
+                  キャンセル
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setConfirmingClear(true);
+                }}
+                className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>履歴を消去</span>
+              </button>
+            )
           ) : (
             <div />
           )}
 
           <button
+            type="button"
             onClick={() => {
               sound.playClick();
+              setConfirmingClear(false);
               onClose();
             }}
             className="py-2 px-6 rounded-xl font-bold text-stone-900 bg-amber-400 hover:bg-amber-300 transition-colors cursor-pointer"
